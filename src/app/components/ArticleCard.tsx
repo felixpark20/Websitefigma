@@ -46,31 +46,22 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
         <p className="text-slate-600 mb-4 line-clamp-2">
           {article.excerpt}
         </p>
-        <div className="flex items-center gap-4 text-slate-500">
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            <Calendar className="w-4 h-4 flex-shrink-0" />
             <span>{article.date}</span>
           </div>
-          <span>•</span>
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+          <span className="text-slate-300">•</span>
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            <Clock className="w-4 h-4 flex-shrink-0" />
             <span>{article.readTime}</span>
           </div>
           {article.views !== undefined && (
             <>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
+              <span className="text-slate-300">•</span>
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                <Eye className="w-4 h-4 flex-shrink-0" />
                 <span>{article.views.toLocaleString()}</span>
-              </div>
-            </>
-          )}
-          {article.isExternal && (
-            <>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <ExternalLink className="w-4 h-4" />
-                <span>External Link</span>
               </div>
             </>
           )}

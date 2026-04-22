@@ -5,6 +5,11 @@ import { Sidebar } from "./components/Sidebar";
 import { ArticleDetail } from "./components/ArticleDetail";
 import { AdminPanel } from "./components/AdminPanel";
 import { Login } from "./components/Login";
+import { CardNewsGrid } from "./components/CardNewsGrid";
+import { CardNewsDetail } from "./components/CardNewsDetail";
+import { TodayCardNews } from "./components/TodayCardNews";
+import { Reports } from "./components/Reports";
+import { ReportDetail } from "./components/ReportDetail";
 import { useState, useEffect } from "react";
 
 // Sample initial articles
@@ -278,21 +283,45 @@ const initialArticles = [
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] =
-    useState("All");
+    useState("Politics");
   const [selectedArticle, setSelectedArticle] =
     useState<any>(null);
+  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showCardNews, setShowCardNews] = useState(false);
   const [articles, setArticles] = useState(() => {
     // Load from localStorage or use initial articles
     const saved = localStorage.getItem("articles");
     return saved ? JSON.parse(saved) : initialArticles;
+  });
+  const [cardNews, setCardNews] = useState(() => {
+    // Load from localStorage
+    const saved = localStorage.getItem("cardNews");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [reports, setReports] = useState(() => {
+    // Load from localStorage
+    const saved = localStorage.getItem("reports");
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Save articles to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("articles", JSON.stringify(articles));
   }, [articles]);
+
+  // Save card news to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("cardNews", JSON.stringify(cardNews));
+  }, [cardNews]);
+
+  // Save reports to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("reports", JSON.stringify(reports));
+  }, [reports]);
 
   // Check if user is already logged in (session storage)
   useEffect(() => {
@@ -340,6 +369,86 @@ export default function App() {
     setArticles(articles.filter((a) => a.id !== id));
   };
 
+  const handleBulkDeleteArticles = (ids: number[]) => {
+    setArticles(articles.filter((a) => !ids.includes(a.id)));
+  };
+
+  const handleAddCard = (cardData: any) => {
+    if (cardData.id) {
+      // Edit existing card
+      setCardNews(
+        cardNews.map((c) =>
+          c.id === cardData.id ? cardData : c
+        )
+      );
+    } else {
+      // Add new card
+      const newCard = {
+        ...cardData,
+        id: Date.now(),
+        date: new Date().toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        views: 0,
+      };
+      setCardNews([newCard, ...cardNews]);
+    }
+  };
+
+  const handleDeleteCard = (id: number) => {
+    setCardNews(cardNews.filter((c) => c.id !== id));
+  };
+
+  const handleBulkDeleteCards = (ids: number[]) => {
+    setCardNews(cardNews.filter((c) => !ids.includes(c.id)));
+  };
+
+  const handleAddReport = (reportData: any) => {
+    const newReport = {
+      ...reportData,
+      id: Date.now(),
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    };
+    setReports([newReport, ...reports]);
+  };
+
+  const handleEditReport = (updatedReport: any) => {
+    setReports(
+      reports.map((r) =>
+        r.id === updatedReport.id ? updatedReport : r,
+      ),
+    );
+  };
+
+  const handleDeleteReport = (id: number) => {
+    setReports(reports.filter((r) => r.id !== id));
+  };
+
+  const handleBulkDeleteReports = (ids: number[]) => {
+    setReports(reports.filter((r) => !ids.includes(r.id)));
+  };
+
+  const handleCardClick = (card: any) => {
+    const updatedCards = cardNews.map((c) =>
+      c.id === card.id ? { ...c, views: (c.views || 0) + 1 } : c
+    );
+    setCardNews(updatedCards);
+    setSelectedCard({ ...card, views: (card.views || 0) + 1 });
+  };
+
+  const handleCardNewsClick = () => {
+    setShowCardNews(true);
+    setSelectedCategory("Card News");
+    setSelectedArticle(null);
+    setSelectedCard(null);
+  };
+
   const handleArticleClick = (article: any) => {
     // If it's an external link, open in new tab
     if (article.isExternal && article.externalLink) {
@@ -367,6 +476,19 @@ export default function App() {
     });
   };
 
+  const handleReportClick = (report: any) => {
+    const updatedReports = reports.map((r) =>
+      r.id === report.id
+        ? { ...r, views: (r.views || 0) + 1 }
+        : r,
+    );
+    setReports(updatedReports);
+    setSelectedReport({
+      ...report,
+      views: (report.views || 0) + 1,
+    });
+  };
+
   const handleAdminClick = () => {
     if (isAuthenticated) {
       setIsAdmin(true);
@@ -384,12 +506,44 @@ export default function App() {
     return (
       <AdminPanel
         articles={articles}
+        cardNews={cardNews}
+        reports={reports}
         onAddArticle={handleAddArticle}
         onEditArticle={handleEditArticle}
         onDeleteArticle={handleDeleteArticle}
+        onBulkDeleteArticles={handleBulkDeleteArticles}
+        onAddCard={handleAddCard}
+        onDeleteCard={handleDeleteCard}
+        onBulkDeleteCards={handleBulkDeleteCards}
+        onAddReport={handleAddReport}
+        onEditReport={handleEditReport}
+        onDeleteReport={handleDeleteReport}
+        onBulkDeleteReports={handleBulkDeleteReports}
         onBack={() => setIsAdmin(false)}
         onLogout={handleLogout}
       />
+    );
+  }
+
+  // Card News Detail View
+  if (selectedCard) {
+    return (
+      <>
+        <Navigation
+          selectedCategory={selectedCategory}
+          onCategoryChange={(category) => {
+            setSelectedCategory(category);
+            setSelectedCard(null);
+            setShowCardNews(false);
+          }}
+          onCardNewsClick={handleCardNewsClick}
+          onAdminClick={handleAdminClick}
+        />
+        <CardNewsDetail
+          card={selectedCard}
+          onBack={() => setSelectedCard(null)}
+        />
+      </>
     );
   }
 
@@ -402,7 +556,9 @@ export default function App() {
           onCategoryChange={(category) => {
             setSelectedCategory(category);
             setSelectedArticle(null);
+            setShowCardNews(false);
           }}
+          onCardNewsClick={handleCardNewsClick}
           onAdminClick={handleAdminClick}
         />
         <ArticleDetail
@@ -413,15 +569,164 @@ export default function App() {
     );
   }
 
+  // If a report is selected, show the report detail view
+  if (selectedReport) {
+    return (
+      <>
+        <Navigation
+          selectedCategory={selectedCategory}
+          onCategoryChange={(category) => {
+            setSelectedCategory(category);
+            setSelectedReport(null);
+            setShowCardNews(false);
+          }}
+          onCardNewsClick={handleCardNewsClick}
+          onAdminClick={handleAdminClick}
+        />
+        <ReportDetail
+          report={selectedReport}
+          onBack={() => setSelectedReport(null)}
+        />
+      </>
+    );
+  }
+
+  // Card News Grid View
+  if (showCardNews) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navigation
+          selectedCategory={selectedCategory}
+          onCategoryChange={(category) => {
+            setSelectedCategory(category);
+            setShowCardNews(false);
+          }}
+          onCardNewsClick={handleCardNewsClick}
+          onAdminClick={handleAdminClick}
+        />
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="mb-2 text-slate-900">Daily Card News</h1>
+            <p className="text-slate-600">Daily visual insights on politics, stocks, and economics</p>
+          </div>
+
+          <CardNewsGrid
+            cardNews={cardNews}
+            onCardClick={handleCardClick}
+          />
+        </main>
+
+        <footer className="bg-slate-900 text-white mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <h3 className="mb-4">About</h3>
+                <p className="text-slate-400">
+                  In-depth analysis on politics, economics, and
+                  financial markets.
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-4">Categories</h3>
+                <ul className="space-y-2 text-slate-400">
+                  <li>Politics</li>
+                  <li>Stocks & Markets</li>
+                  <li>Economics</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="mb-4">Connect</h3>
+                <p className="text-slate-400">
+                  Stay updated with the latest columns and
+                  analysis.
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
+              <p>
+                &copy; 2025 Political & Economic Commentary. All
+                rights reserved.
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  // Reports View
+  if (selectedCategory === "Reports") {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navigation
+          selectedCategory={selectedCategory}
+          onCategoryChange={(category) => {
+            setSelectedCategory(category);
+            setShowCardNews(false);
+          }}
+          onCardNewsClick={handleCardNewsClick}
+          onAdminClick={handleAdminClick}
+        />
+
+        <Reports reports={reports} onReportClick={handleReportClick} />
+
+        <footer className="bg-slate-900 text-white mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <h3 className="mb-4">About</h3>
+                <p className="text-slate-400">
+                  In-depth analysis on politics, economics, and
+                  financial markets.
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-4">Categories</h3>
+                <ul className="space-y-2 text-slate-400">
+                  <li>Politics</li>
+                  <li>Stocks & Markets</li>
+                  <li>Economics</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="mb-4">Connect</h3>
+                <p className="text-slate-400">
+                  Stay updated with the latest columns and
+                  analysis.
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
+              <p>
+                &copy; 2025 Political & Economic Commentary. All
+                rights reserved.
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation
         selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
+        onCategoryChange={(category) => {
+          setSelectedCategory(category);
+          setShowCardNews(false);
+        }}
+        onCardNewsClick={handleCardNewsClick}
         onAdminClick={handleAdminClick}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <TodayCardNews
+          cardNews={cardNews}
+          onCardClick={handleCardClick}
+        />
+
         <Hero
           articles={articles}
           onArticleClick={handleArticleClick}
@@ -437,7 +742,10 @@ export default function App() {
           </div>
 
           <aside className="lg:col-span-1">
-            <Sidebar onCategoryChange={setSelectedCategory} />
+            <Sidebar
+              articles={articles}
+              onCategoryChange={setSelectedCategory}
+            />
           </aside>
         </div>
       </main>

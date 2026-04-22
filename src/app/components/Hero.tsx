@@ -39,16 +39,16 @@ export function Hero({ articles, onArticleClick }: HeroProps) {
           <p className="text-slate-600 mb-6">
             {mostPopular.excerpt}
           </p>
-          <div className="flex items-center gap-4 text-slate-500">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
+          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Calendar className="w-4 h-4 flex-shrink-0" />
               <span>{mostPopular.date}</span>
             </div>
-            <span>•</span>
-            <span>{mostPopular.readTime}</span>
-            <span>•</span>
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4" />
+            <span className="text-slate-300">•</span>
+            <span className="whitespace-nowrap">{mostPopular.readTime}</span>
+            <span className="text-slate-300">•</span>
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Eye className="w-4 h-4 flex-shrink-0" />
               <span>{mostPopular.views?.toLocaleString() || 0} views</span>
             </div>
           </div>
