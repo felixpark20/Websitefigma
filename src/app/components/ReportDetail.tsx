@@ -64,7 +64,7 @@ export function ReportDetail({ report, onBack }: ReportDetailProps) {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="w-full" style={{ height: '800px' }}>
+          <div className="w-full" style={{ height: 'calc(100vh - 160px)', minHeight: '900px' }}>
             <iframe
               src={report.pdfUrl}
               className="w-full h-full border-0"

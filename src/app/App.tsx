@@ -345,12 +345,28 @@ export default function App() {
       views: 0,
     };
     setArticles(prev => [newArticle, ...prev]);
-    await fetch('/api/articles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newArticle) }).catch(console.error);
+    try {
+      const res = await fetch('/api/articles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newArticle) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Re-fetch to confirm saved
+      const refreshed = await fetch('/api/articles').then(r => r.json()).catch(() => null);
+      if (Array.isArray(refreshed)) setArticles(refreshed);
+    } catch (err) {
+      console.error('Failed to save article:', err);
+      alert('저장에 실패했습니다. 다시 시도해 주세요.');
+      setArticles(prev => prev.filter(a => a.id !== newArticle.id));
+    }
   };
 
   const handleEditArticle = async (updatedArticle: any) => {
     setArticles(prev => prev.map(a => a.id === updatedArticle.id ? updatedArticle : a));
-    await fetch('/api/articles', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedArticle) }).catch(console.error);
+    try {
+      const res = await fetch('/api/articles', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedArticle) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      console.error('Failed to update article:', err);
+      alert('저장에 실패했습니다. 다시 시도해 주세요.');
+    }
   };
 
   const handleDeleteArticle = async (id: number) => {
@@ -716,6 +732,17 @@ export default function App() {
             <TodayCardNews
               cardNews={cardNews}
               onCardClick={handleCardClick}
+              featuredPost={(() => {
+                const combined = [
+                  ...articles.filter(a => !a.isExternal).map(a => ({ ...a, type: "article" as const })),
+                  ...reports.map(r => ({ ...r, type: "report" as const }))
+                ].sort((a, b) => b.id - a.id);
+                return combined[0] || null;
+              })()}
+              onFeaturedClick={(post) => {
+                if (post.type === "article") handleArticleClick(post);
+                else handleReportClick(post);
+              }}
             />
           </div>
           <div className="lg:col-span-1">

@@ -206,15 +206,11 @@ export function ArticleDetail({ article, onBack }: ArticleDetailProps) {
         
         {/* Author Bio */}
         <div className="mt-12 p-6 bg-white rounded-lg border border-slate-200">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-slate-300 rounded-full flex-shrink-0"></div>
-            <div>
-              <h4 className="text-slate-900 mb-2">About the Author</h4>
-              <p className="text-slate-600">
-                A seasoned columnist covering politics, economics, and financial markets with over 
-                a decade of experience in policy analysis and market commentary.
-              </p>
-            </div>
+          <div>
+            <h4 className="text-slate-900 mb-2">박정규</h4>
+            <p className="text-slate-600">
+              서울대학교 경제학부생
+            </p>
           </div>
         </div>
       </article>

@@ -1,4 +1,5 @@
 import { Calendar, Eye } from "lucide-react";
+import { Badge } from "./ui/badge";
 
 interface CardNews {
   id: number;
@@ -10,12 +11,29 @@ interface CardNews {
   views?: number;
 }
 
+interface FeaturedPost {
+  id: number;
+  title: string;
+  excerpt?: string;
+  category: string;
+  date: string;
+  image?: string;
+  type: "article" | "report";
+}
+
 interface TodayCardNewsProps {
   cardNews: CardNews[];
   onCardClick: (card: CardNews) => void;
+  featuredPost?: FeaturedPost | null;
+  onFeaturedClick?: (post: FeaturedPost) => void;
 }
 
-export function TodayCardNews({ cardNews, onCardClick }: TodayCardNewsProps) {
+const FALLBACK_COLORS = [
+  "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B",
+  "#EF4444", "#06B6D4", "#84CC16", "#F97316",
+];
+
+export function TodayCardNews({ cardNews, onCardClick, featuredPost, onFeaturedClick }: TodayCardNewsProps) {
   // Get today's date in the same format as card.date (e.g., "Nov 17, 2025")
   const today = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -30,7 +48,7 @@ export function TodayCardNews({ cardNews, onCardClick }: TodayCardNewsProps) {
     : [...cardNews].sort((a, b) => b.id - a.id).slice(0, 3);
   const isToday = todayCards.length > 0;
 
-  if (displayCards.length === 0) {
+  if (displayCards.length === 0 && !featuredPost) {
     return null;
   }
 
@@ -82,6 +100,48 @@ export function TodayCardNews({ cardNews, onCardClick }: TodayCardNewsProps) {
             </div>
           </div>
         ))}
+
+        {/* Featured Recent Post — fills empty space when fewer than 3 cards */}
+        {featuredPost && displayCards.length < 3 && (
+          <div
+            className={`group cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 ${displayCards.length === 1 ? "sm:col-span-1 lg:col-span-2" : ""}`}
+            onClick={() => onFeaturedClick?.(featuredPost)}
+          >
+            <div
+              className="h-48 overflow-hidden relative"
+              style={{ background: featuredPost.image ? undefined : FALLBACK_COLORS[featuredPost.id % FALLBACK_COLORS.length] }}
+            >
+              {featuredPost.image ? (
+                <img
+                  src={featuredPost.image}
+                  alt={featuredPost.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = "none";
+                    if (target.parentElement) target.parentElement.style.background = FALLBACK_COLORS[featuredPost.id % FALLBACK_COLORS.length];
+                  }}
+                />
+              ) : null}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                <Badge variant="secondary" className="text-xs mb-1">
+                  {featuredPost.type === "report" ? "📊 " : "✍️ "}{featuredPost.category}
+                </Badge>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-xs text-slate-500 mb-1">Most Recent Post</p>
+              <h3 className="text-slate-900 mb-2 line-clamp-2 font-semibold">{featuredPost.title}</h3>
+              {featuredPost.excerpt && (
+                <p className="text-slate-600 text-sm line-clamp-2 mb-2">{featuredPost.excerpt}</p>
+              )}
+              <div className="flex items-center gap-1 text-xs text-slate-400">
+                <Calendar className="w-3 h-3" />
+                <span>{featuredPost.date}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -53,12 +53,22 @@ export function Hero({ articles, onArticleClick }: HeroProps) {
             </div>
           </div>
         </div>
-        <div className="h-64 md:h-auto bg-slate-200">
-          <img
-            src={mostPopular.image}
-            alt={mostPopular.title}
-            className="w-full h-full object-cover"
-          />
+        <div
+          className="h-64 md:h-auto bg-slate-200"
+          style={{ background: mostPopular.image ? undefined : "#3B82F6" }}
+        >
+          {mostPopular.image ? (
+            <img
+              src={mostPopular.image}
+              alt={mostPopular.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = "none";
+                if (target.parentElement) target.parentElement.style.background = "#3B82F6";
+              }}
+            />
+          ) : null}
         </div>
       </div>
     </div>

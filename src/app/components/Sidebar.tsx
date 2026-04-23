@@ -26,8 +26,10 @@ export function Sidebar({ articles, onCategoryChange, onSubscribe }: SidebarProp
     .sort((a, b) => (b.views || 0) - (a.views || 0))
     .slice(0, 4);
 
-  // Categories: unique categories from articles
-  const categories = Array.from(new Set(articles.map(a => a.category)));
+  // Categories: always show default set, merge with any from articles
+  const defaultCategories = ["Politics", "Stocks", "Economics"];
+  const articleCategories = Array.from(new Set(articles.map(a => a.category)));
+  const categories = Array.from(new Set([...defaultCategories, ...articleCategories]));
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
