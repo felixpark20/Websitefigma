@@ -17,8 +17,7 @@ export function Login({ onLogin }: LoginProps) {
     e.preventDefault();
     setError("");
     
-    // You can change this password to whatever you want
-    const correctPassword = "admin123";
+    const correctPassword = "9104";
     
     if (password === correctPassword) {
       onLogin(password);
@@ -67,14 +66,6 @@ export function Login({ onLogin }: LoginProps) {
           </div>
         </form>
 
-        <div className="mt-6 p-4 bg-slate-100 rounded-lg">
-          <p className="text-slate-600">
-            <strong>Default password:</strong> admin123
-          </p>
-          <p className="text-slate-500 mt-2">
-            You can change this in the Login.tsx component
-          </p>
-        </div>
       </Card>
     </div>
   );
