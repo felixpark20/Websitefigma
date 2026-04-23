@@ -50,13 +50,34 @@ interface CardNewsUploadProps {
 }
 
 export function CardNewsUpload({ cardNews, onAddCard, onDeleteCard, onBulkDelete }: CardNewsUploadProps) {
-  const [title, setTitle] = useState("");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Default to today in YYYY-MM-DD format
+    return new Date().toISOString().split("T")[0];
+  });
   const [images, setImages] = useState<string[]>([]);
   const [pdfUrl, setPdfUrl] = useState("");
   const [pdfName, setPdfName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [editingCard, setEditingCard] = useState<CardNews | null>(null);
+
+  // Format date string (YYYY-MM-DD) to readable title e.g. "April 23rd, 2026"
+  const formatDateTitle = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "T12:00:00");
+    const day = date.getDate();
+    const suffix = day === 1 || day === 21 || day === 31 ? "st"
+      : day === 2 || day === 22 ? "nd"
+      : day === 3 || day === 23 ? "rd" : "th";
+    return date.toLocaleDateString("en-US", { month: "long" }) + " " + day + suffix + ", " + date.getFullYear();
+  };
+
+  // Format date for card.date field e.g. "Apr 23, 2026"
+  const formatDateField = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "T12:00:00");
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -96,7 +117,8 @@ export function CardNewsUpload({ cardNews, onAddCard, onDeleteCard, onBulkDelete
 
   const handleEditCard = (card: CardNews) => {
     setEditingCard(card);
-    setTitle(card.title);
+    // Try to reverse-parse date from title, fall back to today
+    setSelectedDate(new Date().toISOString().split("T")[0]);
     setImages(card.images || []);
     setPdfUrl(card.pdfUrl || "");
     setPdfName(card.pdfName || "");
@@ -120,8 +142,8 @@ export function CardNewsUpload({ cardNews, onAddCard, onDeleteCard, onBulkDelete
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || images.length === 0) {
-      alert('Please provide title and 4-6 images');
+    if (!selectedDate || images.length === 0) {
+      alert('Please select a date and upload 4-6 images');
       return;
     }
 
@@ -130,26 +152,16 @@ export function CardNewsUpload({ cardNews, onAddCard, onDeleteCard, onBulkDelete
       return;
     }
 
+    const title = formatDateTitle(selectedDate);
+    const date = formatDateField(selectedDate);
+
     if (editingCard) {
-      // Edit existing card
-      onAddCard({
-        ...editingCard,
-        title: title.trim(),
-        images: images,
-        pdfUrl: pdfUrl,
-        pdfName: pdfName,
-      } as any);
+      onAddCard({ ...editingCard, title, date, images, pdfUrl, pdfName } as any);
     } else {
-      // Add new card
-      onAddCard({
-        title: title.trim(),
-        images: images,
-        pdfUrl: pdfUrl,
-        pdfName: pdfName,
-      });
+      onAddCard({ title, date, images, pdfUrl, pdfName } as any);
     }
 
-    setTitle("");
+    setSelectedDate(new Date().toISOString().split("T")[0]);
     setImages([]);
     setPdfUrl("");
     setPdfName("");
@@ -159,7 +171,7 @@ export function CardNewsUpload({ cardNews, onAddCard, onDeleteCard, onBulkDelete
 
   const handleCancel = () => {
     setIsUploading(false);
-    setTitle("");
+    setSelectedDate(new Date().toISOString().split("T")[0]);
     setImages([]);
     setPdfUrl("");
     setPdfName("");
@@ -201,18 +213,22 @@ export function CardNewsUpload({ cardNews, onAddCard, onDeleteCard, onBulkDelete
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="title" className="block mb-2 text-slate-700">
-                    Title
+                  <label htmlFor="cardDate" className="block mb-2 text-slate-700">
+                    Date <span className="text-slate-400 text-sm">(becomes the title)</span>
                   </label>
                   <input
-                    id="title"
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    id="cardDate"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    placeholder="Enter card news title"
                     required
                   />
+                  {selectedDate && (
+                    <p className="text-sm text-slate-500 mt-1">
+                      Title: <span className="font-medium text-slate-700">{formatDateTitle(selectedDate)}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div>

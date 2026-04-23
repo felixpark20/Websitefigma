@@ -1,6 +1,7 @@
 import { Navigation } from "./components/Navigation";
 import { Hero } from "./components/Hero";
 import { ArticleGrid } from "./components/ArticleGrid";
+import { ArticleCard } from "./components/ArticleCard";
 import { Sidebar } from "./components/Sidebar";
 import { ArticleDetail } from "./components/ArticleDetail";
 import { AdminPanel } from "./components/AdminPanel";
@@ -283,7 +284,7 @@ const initialArticles = [
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] =
-    useState("Politics");
+    useState("");
   const [selectedArticle, setSelectedArticle] =
     useState<any>(null);
   const [selectedCard, setSelectedCard] = useState<any>(null);
@@ -385,11 +386,11 @@ export default function App() {
       setCardNews(prev => prev.map(c => c.id === cardData.id ? cardData : c));
       await fetch('/api/cardnews', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cardData) }).catch(console.error);
     } else {
-      // Add new card
+      // Add new card — use date from cardData if provided, else today
       const newCard = {
         ...cardData,
         id: Date.now(),
-        date: new Date().toLocaleDateString("en-US", {
+        date: cardData.date || new Date().toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -654,6 +655,44 @@ export default function App() {
     );
   }
 
+  // Column Category View (Politics / Stocks / Economics)
+  if (["Politics", "Stocks", "Economics"].includes(selectedCategory)) {
+    const filteredArticles = articles.filter(a => a.category === selectedCategory);
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navigation
+          selectedCategory={selectedCategory}
+          onCategoryChange={(category) => { setSelectedCategory(category); setShowCardNews(false); }}
+          onCardNewsClick={handleCardNewsClick}
+          onAdminClick={handleAdminClick}
+        />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="mb-2 text-slate-900">{selectedCategory} Columns</h1>
+          <p className="text-slate-500 mb-8">{filteredArticles.length} article{filteredArticles.length !== 1 ? "s" : ""}</p>
+          {filteredArticles.length === 0 ? (
+            <p className="text-slate-500">No articles in this category yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredArticles.map(article => (
+                <ArticleCard key={article.id} article={article} onClick={() => handleArticleClick(article)} />
+              ))}
+            </div>
+          )}
+        </main>
+        <footer className="bg-slate-900 text-white mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div><h3 className="mb-4">About</h3><p className="text-slate-400">In-depth analysis on politics, economics, and financial markets.</p></div>
+              <div><h3 className="mb-4">Categories</h3><ul className="space-y-2 text-slate-400"><li>Daily Card News</li><li>Columns — Politics / Stocks / Economics</li><li>Reports — Company Analysis / General Report</li></ul></div>
+              <div><h3 className="mb-4">Connect</h3><p className="text-slate-400">Email Address:{" "}<a href="mailto:itsautumn@snu.ac.kr" className="text-slate-200 hover:text-white transition-colors underline underline-offset-2">itsautumn@snu.ac.kr</a></p></div>
+            </div>
+            <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400"><p>&copy; 2026 APERI. All rights reserved.</p></div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
   // Reports View
   if (["Reports", "Company Analysis", "General Report"].includes(selectedCategory)) {
     return (
@@ -727,24 +766,60 @@ export default function App() {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Top 3-column row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          <div className="lg:col-span-2">
+
+          {/* Left 1/3: Card News — latest 1 only */}
+          <div className="lg:col-span-1">
             <TodayCardNews
               cardNews={cardNews}
               onCardClick={handleCardClick}
-              featuredPost={(() => {
-                const combined = [
-                  ...articles.filter(a => !a.isExternal).map(a => ({ ...a, type: "article" as const })),
-                  ...reports.map(r => ({ ...r, type: "report" as const }))
-                ].sort((a, b) => b.id - a.id);
-                return combined[0] || null;
-              })()}
-              onFeaturedClick={(post) => {
-                if (post.type === "article") handleArticleClick(post);
-                else handleReportClick(post);
-              }}
             />
           </div>
+
+          {/* Center 1/3: Most Recent Post */}
+          <div className="lg:col-span-1">
+            {(() => {
+              const combined = [
+                ...articles.filter(a => !a.isExternal).map(a => ({ ...a, type: "article" as const })),
+                ...reports.map(r => ({ ...r, type: "report" as const }))
+              ].sort((a, b) => b.id - a.id);
+              const post = combined[0];
+              if (!post) return (
+                <div className="bg-white rounded-lg shadow-sm p-6 h-full flex items-center justify-center">
+                  <p className="text-slate-400 text-sm">No posts yet</p>
+                </div>
+              );
+              const COLORS = ["#3B82F6","#10B981","#8B5CF6","#F59E0B","#EF4444","#06B6D4","#84CC16","#F97316","#EC4899","#6366F1"];
+              const fallback = COLORS[post.id % COLORS.length];
+              return (
+                <div
+                  className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-lg transition-all h-full flex flex-col"
+                  onClick={() => post.type === "article" ? handleArticleClick(post) : handleReportClick(post)}
+                >
+                  <div className="h-48 overflow-hidden relative" style={{ background: fallback }}>
+                    {post.image && (
+                      <img src={post.image} alt={post.title} className="w-full h-full object-cover"
+                        onError={e => { e.currentTarget.style.display="none"; }} />
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${post.type === "report" ? "bg-blue-500 text-white" : "bg-white/90 text-slate-800"}`}>
+                        {post.type === "report" ? "📊 " : "✍️ "}{post.category}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <p className="text-xs text-slate-400 mb-1">Most Recent Post</p>
+                    <h3 className="text-slate-900 font-semibold line-clamp-2 mb-2">{post.title}</h3>
+                    {post.excerpt && <p className="text-slate-600 text-sm line-clamp-3 mb-3">{post.excerpt}</p>}
+                    <p className="text-slate-400 text-xs mt-auto">{post.date}</p>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Right 1/3: Recent Posts list */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 h-full">
               <h2 className="text-slate-900 mb-4" style={{fontSize: "1.1rem"}}>Recent Posts</h2>

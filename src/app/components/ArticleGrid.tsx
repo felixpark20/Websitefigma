@@ -7,16 +7,19 @@ interface ArticleGridProps {
 }
 
 export function ArticleGrid({ selectedCategory, onArticleClick, articles }: ArticleGridProps) {
-  const filteredArticles = articles.filter(article => article.category === selectedCategory);
+  const isAll = !selectedCategory || selectedCategory === "All";
+  const filteredArticles = isAll
+    ? [...articles].filter(a => !a.isExternal).sort((a: any, b: any) => b.id - a.id).slice(0, 8)
+    : articles.filter((article: any) => article.category === selectedCategory);
 
   return (
     <div>
       <h2 className="mb-6 text-slate-900">
-        {selectedCategory} Columns
+        {isAll ? "Latest Columns" : `${selectedCategory} Columns`}
       </h2>
       {filteredArticles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredArticles.map((article) => (
+          {filteredArticles.map((article: any) => (
             <ArticleCard key={article.id} article={article} onClick={() => onArticleClick(article)} />
           ))}
         </div>

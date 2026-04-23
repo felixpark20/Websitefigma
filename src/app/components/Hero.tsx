@@ -1,6 +1,12 @@
 import { Badge } from "./ui/badge";
 import { Calendar, Eye } from "lucide-react";
 
+const FALLBACK_COLORS = [
+  "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B",
+  "#EF4444", "#06B6D4", "#84CC16", "#F97316",
+  "#EC4899", "#6366F1",
+];
+
 interface HeroProps {
   articles: any[];
   onArticleClick: (article: any) => void;
@@ -54,8 +60,8 @@ export function Hero({ articles, onArticleClick }: HeroProps) {
           </div>
         </div>
         <div
-          className="h-64 md:h-auto bg-slate-200"
-          style={{ background: mostPopular.image ? undefined : "#3B82F6" }}
+          className="h-64 md:h-auto"
+          style={{ background: FALLBACK_COLORS[mostPopular.id % FALLBACK_COLORS.length] }}
         >
           {mostPopular.image ? (
             <img
@@ -65,7 +71,8 @@ export function Hero({ articles, onArticleClick }: HeroProps) {
               onError={(e) => {
                 const target = e.currentTarget;
                 target.style.display = "none";
-                if (target.parentElement) target.parentElement.style.background = "#3B82F6";
+                if (target.parentElement)
+                  target.parentElement.style.background = FALLBACK_COLORS[mostPopular.id % FALLBACK_COLORS.length];
               }}
             />
           ) : null}
