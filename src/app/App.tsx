@@ -303,7 +303,7 @@ export default function App() {
       fetch('/api/cardnews').then(r => r.json()).catch(() => null),
       fetch('/api/reports').then(r => r.json()).catch(() => null),
     ]).then(([fetchedArticles, fetchedCardNews, fetchedReports]) => {
-      setArticles(fetchedArticles?.length ? fetchedArticles : initialArticles);
+      setArticles(Array.isArray(fetchedArticles) ? fetchedArticles : initialArticles);
       setCardNews(fetchedCardNews || []);
       setReports(fetchedReports || []);
       setLoading(false);
