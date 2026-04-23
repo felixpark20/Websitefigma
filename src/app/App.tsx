@@ -639,7 +639,7 @@ export default function App() {
   }
 
   // Reports View
-  if (selectedCategory === "Reports") {
+  if (["Reports", "Company Analysis", "General Report"].includes(selectedCategory)) {
     return (
       <div className="min-h-screen bg-slate-50">
         <Navigation
@@ -652,7 +652,12 @@ export default function App() {
           onAdminClick={handleAdminClick}
         />
 
-        <Reports reports={reports} onReportClick={handleReportClick} />
+        <Reports
+          reports={reports}
+          onReportClick={handleReportClick}
+          selectedCategory={selectedCategory === "Reports" ? "Company Analysis" : selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
 
         <footer className="bg-slate-900 text-white mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

@@ -12,17 +12,23 @@ interface NavigationProps {
 export function Navigation({ selectedCategory, onCategoryChange, onAdminClick, onCardNewsClick }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showColumnsDropdown, setShowColumnsDropdown] = useState(false);
+  const [showReportsDropdown, setShowReportsDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const reportsDropdownRef = useRef<HTMLDivElement>(null);
 
   const columnCategories = ["Politics", "Stocks", "Economics"];
+  const reportCategories = ["Company Analysis", "General Report"];
   const showCardNews = selectedCategory === "Card News";
-  const showReports = selectedCategory === "Reports";
+  const showReports = ["Reports", "Company Analysis", "General Report"].includes(selectedCategory);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowColumnsDropdown(false);
+      }
+      if (reportsDropdownRef.current && !reportsDropdownRef.current.contains(event.target as Node)) {
+        setShowReportsDropdown(false);
       }
     };
 
@@ -88,16 +94,40 @@ export function Navigation({ selectedCategory, onCategoryChange, onAdminClick, o
               )}
             </div>
 
-            <button
-              onClick={() => onCategoryChange("Reports")}
-              className={`transition-colors ${
-                showReports
-                  ? "text-slate-900"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Reports
-            </button>
+            <div className="relative" ref={reportsDropdownRef}>
+              <button
+                onClick={() => setShowReportsDropdown(!showReportsDropdown)}
+                className={`flex items-center gap-1 transition-colors ${
+                  showReports
+                    ? "text-slate-900"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Reports
+                <ChevronDown className={`w-4 h-4 transition-transform ${showReportsDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showReportsDropdown && (
+                <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg border border-slate-200 py-2 min-w-[180px] z-50">
+                  {reportCategories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        onCategoryChange(category);
+                        setShowReportsDropdown(false);
+                      }}
+                      className={`block w-full text-left px-4 py-2 transition-colors ${
+                        selectedCategory === category
+                          ? "text-slate-900 bg-slate-100"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -159,19 +189,25 @@ export function Navigation({ selectedCategory, onCategoryChange, onAdminClick, o
               ))}
             </div>
 
-            <button
-              onClick={() => {
-                onCategoryChange("Reports");
-                setIsOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md ${
-                showReports
-                  ? "text-slate-900 bg-slate-100"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              Reports
-            </button>
+            <div className="py-1">
+              <div className="px-3 py-2 text-sm text-slate-900">Reports</div>
+              {reportCategories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => {
+                    onCategoryChange(category);
+                    setIsOpen(false);
+                  }}
+                  className={`block w-full text-left px-6 py-2 rounded-md ${
+                    selectedCategory === category
+                      ? "text-slate-900 bg-slate-100"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
             <div className="pt-2 space-y-2">
               <Button 
                 variant="ghost" 

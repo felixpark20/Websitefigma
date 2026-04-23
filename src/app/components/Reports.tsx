@@ -16,9 +16,15 @@ interface Report {
 interface ReportsProps {
   reports: Report[];
   onReportClick: (report: Report) => void;
+  selectedCategory?: string;
+  onCategoryChange?: (category: string) => void;
 }
 
-export function Reports({ reports, onReportClick }: ReportsProps) {
+const REPORT_CATEGORIES = ["Company Analysis", "General Report"];
+
+export function Reports({ reports, onReportClick, selectedCategory = "Company Analysis", onCategoryChange }: ReportsProps) {
+  const filtered = reports.filter(r => r.category === selectedCategory);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -27,7 +33,24 @@ export function Reports({ reports, onReportClick }: ReportsProps) {
           <p className="text-slate-600">In-depth analysis and comprehensive reports</p>
         </div>
 
-        {reports.length === 0 ? (
+        {/* Sub-category tabs */}
+        <div className="flex gap-2 border-b border-slate-200 mb-8">
+          {REPORT_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => onCategoryChange?.(cat)}
+              className={`px-4 py-2 -mb-px border-b-2 transition-colors ${
+                selectedCategory === cat
+                  ? "border-slate-900 text-slate-900"
+                  : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {filtered.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <h3 className="mb-2 text-slate-900">No reports yet</h3>
             <p className="text-slate-600">
@@ -36,7 +59,7 @@ export function Reports({ reports, onReportClick }: ReportsProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reports.map((report) => (
+            {filtered.map((report) => (
               <ArticleCard
                 key={report.id}
                 article={report}

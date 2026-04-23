@@ -30,7 +30,7 @@ export function ReportEditor({ report, onSave, onCancel }: ReportEditorProps) {
   const [formData, setFormData] = useState({
     title: report?.title || "",
     excerpt: report?.excerpt || "",
-    category: report?.category || "Report",
+    category: report?.category || "Company Analysis",
     image: report?.image || "",
     pdfUrl: report?.pdfUrl || "",
     pdfName: report?.pdfName || "",
@@ -134,10 +134,8 @@ export function ReportEditor({ report, onSave, onCancel }: ReportEditorProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Report">Report</SelectItem>
-                    <SelectItem value="Politics">Politics</SelectItem>
-                    <SelectItem value="Stocks">Stocks</SelectItem>
-                    <SelectItem value="Economics">Economics</SelectItem>
+                    <SelectItem value="Company Analysis">Company Analysis</SelectItem>
+                    <SelectItem value="General Report">General Report</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
