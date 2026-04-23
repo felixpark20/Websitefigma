@@ -2,6 +2,12 @@ import { ArrowLeft, Calendar, Clock, Share2, Eye } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
+const FALLBACK_COLORS = [
+  "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B",
+  "#EF4444", "#06B6D4", "#84CC16", "#F97316",
+  "#EC4899", "#6366F1",
+];
+
 interface Article {
   id: number;
   title: string;
@@ -187,12 +193,18 @@ export function ArticleDetail({ article, onBack }: ArticleDetailProps) {
       {/* Article Content */}
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         {/* Featured Image */}
-        <div className="rounded-lg overflow-hidden mb-8">
-          <img
-            src={article.image}
-            alt={article.title}
-            className="w-full h-96 object-cover"
-          />
+        <div
+          className="rounded-lg overflow-hidden mb-8 h-96"
+          style={{ background: FALLBACK_COLORS[article.id % FALLBACK_COLORS.length] }}
+        >
+          {article.image && (
+            <img
+              src={article.image}
+              alt={article.title}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          )}
         </div>
         
         {/* Article Body */}
